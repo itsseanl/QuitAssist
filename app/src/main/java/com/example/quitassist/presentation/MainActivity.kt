@@ -12,18 +12,26 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +49,8 @@ import androidx.wear.tooling.preview.devices.WearDevices
 import com.example.quitassist.R
 import com.example.quitassist.presentation.theme.QuitAssistTheme
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
 class MainActivity : ComponentActivity() {
@@ -80,38 +90,99 @@ fun Timer(name: String, modifier: Modifier = Modifier){
     val pagerState = rememberPagerState(pageCount = {
         2
     })
+    val currentAmount = remember { mutableStateOf("15")}
+    val goalAmount = remember { mutableStateOf("10")}
+    val costBasis = remember { mutableStateOf("7")}
+
     HorizontalPager(state = pagerState){
+    page ->
+        when (page){
+             0 -> {
+                Column(modifier = modifier.padding(24.dp).fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text ="Daily Goal: " + goalAmount.value,
+                        textAlign = TextAlign.Center,
+                        style = typography.labelSmall
+                    )
+                    Row(){
+                    ElevatedButton(
+                        onClick = {
+                            expanded.value = !expanded.value
+                            count.value = count.value.inc()
+                            val toast = Toast.makeText(context,"starting timer, good luck!", Toast.LENGTH_LONG)
+                            toast.show()
+                        }
+                    ) {
+                        Text(
+                            text ="+",
+                            style = TextStyle(color = Color.Black)
+                        )
 
-        Column(modifier = modifier.padding(24.dp)) {
-            Row(){
+                    }
+                    ElevatedButton(
+                        onClick = { if (count.value > 0) count.value = count.value.dec() else count.value = 0 }
+                    ){
+                        Text(
+                            text = "-",
+                            style = TextStyle(color = Color.Black)
 
-            ElevatedButton(
-                onClick = { expanded.value = !expanded.value
-                    count.value = count.value.inc() }
-            ) {
-                Text("+")
+                        )
+                    }
+                    }
+                    Text(count.value.toString() + " used")
 
+                }
             }
-            ElevatedButton(
-                onClick = { if (count.value > 0) count.value = count.value.dec() else count.value = 0 }
-            ){
-                Text("-")
-            }
-            }
-            Text(count.value.toString() + " used")
-            repeat(pagerState.pageCount) { iteration ->
-                val color = if (pagerState.currentPage == iteration) Color.DarkGray else Color.LightGray
-                Box(
-                    modifier = Modifier
-                        .padding(2.dp)
-                        .clip(CircleShape)
-                        .background(color)
-                        .size(16.dp)
-                )
+            1 -> {
+                Column(modifier = modifier.padding(24.dp).verticalScroll(rememberScrollState())){
+                    OutlinedTextField(
+                        value = currentAmount.value,
+                        onValueChange = { goalAmount.value = it},
+                        label = { Text("Current Daily Usage")},
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Decimal),
+                        textStyle = TextStyle(color = Color.White),
+                        modifier = Modifier.padding(top = 50.dp).padding(bottom = 30.dp)
+                    )
+                    OutlinedTextField(
+                        value = goalAmount.value,
+                        onValueChange = { goalAmount.value = it},
+                        label = { Text("Goal Daily Usage")},
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Decimal),
+                        textStyle = TextStyle(color = Color.White),
+                        modifier = Modifier.padding(0.dp).padding(bottom = 30.dp)
+                    )
+                    OutlinedTextField(
+                        value = costBasis.value,
+                        onValueChange = {costBasis.value = it},
+                        label = { Text("cost per pouch") },
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Decimal),
+                        textStyle = TextStyle(color = Color.White),
+                        )
+                }
+
             }
         }
-
     }
+    Row(
+        Modifier
+            .height(175.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.Bottom
+    ) {
+        repeat(2) { iteration ->
+            val color = if (pagerState.currentPage == iteration) Color.LightGray else Color.DarkGray
+            Box(
+                modifier = Modifier
+                    .padding(2.dp)
+                    .background(color, CircleShape)
+                    .size(10.dp)
+            )
+        }
+    }
+
 }
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
