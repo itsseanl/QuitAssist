@@ -33,8 +33,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,19 +56,35 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.room.Room
+import com.example.quitassist.AppDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Date
+import java.util.TimeZone
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
 
         super.onCreate(savedInstanceState)
 
         setTheme(android.R.style.Theme_DeviceDefault)
-
+//        val db = Room.databaseBuilder(
+//            this,
+//            AppDatabase::class.java, "AppDatabase"
+//        ).createFromAsset("quitassistdb.db").build()
+//        val lifetimeDB = db.lifetimeDao()
+//        val currentAmountLoaded = lifetimeDB.getCDU()
         setContent {
             WearApp("Android")
         }
     }
+    
 }
 
 @Composable
@@ -82,17 +102,84 @@ fun WearApp(greetingName: String) {
     }
 }
 
+
 @Composable
 fun Timer(name: String, modifier: Modifier = Modifier){
+    // Create a CoroutineScope that follows this composable's lifecycle
+    val composableScope = rememberCoroutineScope()
+
     var context = LocalContext.current
     val expanded = remember { mutableStateOf(false) }
-    val count = remember { mutableStateOf(0)}
+    val count = remember { mutableIntStateOf(0) }
     val pagerState = rememberPagerState(pageCount = {
         2
     })
-    val currentAmount = remember { mutableStateOf("15")}
+var currentAmountVal: String = "15"
+
+    var currentAmount = remember { mutableStateOf(currentAmountVal)}
+    LaunchedEffect(currentAmount.value) {
+
+
+            val db = Room.databaseBuilder(
+                context,
+                AppDatabase::class.java, "AppDatabase"
+            ).createFromAsset("quitassistdb.db").build()
+            val lifetimeDB = db.lifetimeDao()
+            val currentAmountLoaded = lifetimeDB.getCDU()
+            if (currentAmountLoaded != 0) {
+print(currentAmountLoaded)
+
+                currentAmountVal = currentAmountLoaded.toString()
+            }
+            if (currentAmountVal::class.simpleName == "Int"){
+                print("currentAmountVal is Int")
+                lifetimeDB.setCDU(currentAmount.value.toInt())
+            }
+            if (currentAmountVal != ""){
+                print("currentAmountVal is empty")
+                lifetimeDB.setCDU(currentAmount.value.toInt())
+
+        }
+    }
+    var bool = rememberSaveable { true }
+
+    LaunchedEffect(key1 = bool) {
+        // do something
+        val db = Room.databaseBuilder(
+            context,
+            AppDatabase::class.java, "AppDatabase"
+        ).build()
+        val DailyTable = db.DailyDao()
+
+        val theDate = LocalDate.now(ZoneId.systemDefault()).toString()
+        DailyTable.createDailyEntry(theDate)
+        count.value = DailyTable.getAU(theDate)
+        println("dailyTable.getCDU: " + DailyTable.getAU(theDate))
+println("count.value at launch" + count.value)
+        bool = false
+    }
+    LaunchedEffect(count.value){
+        val theDate = LocalDate.now(ZoneId.systemDefault()).toString()
+
+//        composableScope.launch {
+        println("count.value updated")
+            val db = Room.databaseBuilder(
+                context,
+                AppDatabase::class.java, "AppDatabase"
+            ).build()
+            val DailyTable = db.DailyDao()
+        if (count.value > 0){
+            DailyTable.setAU(count.value, theDate)
+
+        }
+//        }
+    }
+
+
     val goalAmount = remember { mutableStateOf("10")}
     val costBasis = remember { mutableStateOf("7")}
+
+
 
     HorizontalPager(state = pagerState){
     page ->
@@ -113,7 +200,8 @@ fun Timer(name: String, modifier: Modifier = Modifier){
                             count.value = count.value.inc()
                             val toast = Toast.makeText(context,"starting timer, good luck!", Toast.LENGTH_LONG)
                             toast.show()
-                        }
+                        },
+
                     ) {
                         Text(
                             text ="+",
@@ -137,15 +225,21 @@ fun Timer(name: String, modifier: Modifier = Modifier){
             }
             1 -> {
                 Column(modifier = modifier.padding(24.dp).verticalScroll(rememberScrollState())){
+
+
                     OutlinedTextField(
                         value = currentAmount.value,
-                        onValueChange = { goalAmount.value = it},
+                        onValueChange = { currentAmount.value = it
+
+                        },
+
                         label = { Text("Current Daily Usage")},
                         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Decimal),
                         textStyle = TextStyle(color = Color.White),
                         modifier = Modifier.padding(top = 50.dp).padding(bottom = 30.dp)
                     )
                     OutlinedTextField(
+
                         value = goalAmount.value,
                         onValueChange = { goalAmount.value = it},
                         label = { Text("Goal Daily Usage")},

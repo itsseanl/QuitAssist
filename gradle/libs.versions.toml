@@ -1,11 +1,18 @@
 [versions]
-agp = "8.7.3"
+agp = "8.8.0"
 composeNavigation = "1.4.0"
-kotlin = "2.0.0"
+kotlin = "2.0.21"
 playServicesWearable = "19.0.0"
 composeBom = "2024.04.01"
 composeMaterial = "1.2.1"
 composeFoundation = "1.2.1"
+roomGuava = "2.6.1"
+roomKtx = "2.6.1"
+roomPaging = "2.6.1"
+roomRuntime = "2.6.1"
+roomRxjava2 = "2.6.1"
+roomRxjava3 = "2.6.1"
+roomTesting = "2.6.1"
 wearToolingPreview = "1.0.0"
 activityCompose = "1.9.3"
 coreSplashscreen = "1.0.1"
@@ -19,9 +26,24 @@ watchfaceComplicationsDataSourceKtx = "1.2.1"
 material3Android = "1.3.1"
 
 [libraries]
+androidx-room-compiler = { module = "androidx.room:room-compiler" }
+androidx-room-guava = { module = "androidx.room:room-guava", version.ref = "roomGuava" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
+androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "roomPaging" }
+androidx-room-rxjava2 = { module = "androidx.room:room-rxjava2", version.ref = "roomRxjava2" }
+androidx-room-rxjava3 = { module = "androidx.room:room-rxjava3", version.ref = "roomRxjava3" }
+androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomTesting" }
 compose-navigation = { module = "androidx.wear.compose:compose-navigation", version.ref = "composeNavigation" }
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
+room-guava = { module = "androidx.room:room-guava" }
+room-ktx = { module = "androidx.room:room-ktx" }
+room-paging = { module = "androidx.room:room-paging" }
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+room-rxjava2 = { module = "androidx.room:room-rxjava2" }
+room-rxjava3 = { module = "androidx.room:room-rxjava3" }
+room-testing = { module = "androidx.room:room-testing" }
 ui = { group = "androidx.compose.ui", name = "ui" }
 ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
