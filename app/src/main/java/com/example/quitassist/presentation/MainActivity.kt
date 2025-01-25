@@ -111,12 +111,18 @@ fun Timer(name: String, modifier: Modifier = Modifier){
     var context = LocalContext.current
     val expanded = remember { mutableStateOf(false) }
     val count = remember { mutableIntStateOf(0) }
+
     val pagerState = rememberPagerState(pageCount = {
         2
     })
-var currentAmountVal: String = "15"
+    var currentAmountVal: String = "15"
 
     var currentAmount = remember { mutableStateOf(currentAmountVal)}
+
+    val goalAmount = remember { mutableStateOf("10")}
+    val costBasis = remember { mutableStateOf("0.53")}
+    val totalSaved = remember { mutableStateOf("0.00")}
+
     LaunchedEffect(currentAmount.value) {
 
 
@@ -127,7 +133,7 @@ var currentAmountVal: String = "15"
             val lifetimeDB = db.lifetimeDao()
             val currentAmountLoaded = lifetimeDB.getCDU()
             if (currentAmountLoaded != 0) {
-print(currentAmountLoaded)
+                print(currentAmountLoaded)
 
                 currentAmountVal = currentAmountLoaded.toString()
             }
@@ -169,15 +175,14 @@ println("count.value at launch" + count.value)
             ).build()
             val DailyTable = db.DailyDao()
         if (count.value > 0){
-            DailyTable.setAU(count.value, theDate)
-
+            // TODO: set savings - (daily goal - daily usage) * unit price. send to setAU -- completed
+            var savings: Double = (currentAmount.value.toInt() - count.intValue) * costBasis.value.toDouble()
+            DailyTable.setAU(savings, count.value, theDate)
+            totalSaved.value = savings.toString()
         }
-//        }
     }
 
 
-    val goalAmount = remember { mutableStateOf("10")}
-    val costBasis = remember { mutableStateOf("7")}
 
 
 
@@ -188,6 +193,11 @@ println("count.value at launch" + count.value)
                 Column(modifier = modifier.padding(24.dp).fillMaxWidth(),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text ="Saved: $" + totalSaved.value,
+                        textAlign = TextAlign.Center,
+                        style = typography.labelLarge
+                    )
                     Text(
                         text ="Daily Goal: " + goalAmount.value,
                         textAlign = TextAlign.Center,
